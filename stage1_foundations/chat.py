@@ -20,6 +20,8 @@ prompt = ChatPromptTemplate.from_messages(
 )
 # Langchain chain
 chain = prompt | llm
+
+# Chat History
 history = ChatMessageHistory()
 
 while True:
