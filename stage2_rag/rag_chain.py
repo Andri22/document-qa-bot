@@ -19,7 +19,7 @@ vector_store = Chroma(
     persist_directory=os.getenv("CHROMA_PATH"),
 )
 
-reterivier = vector_store.as_retriever(search_kwargs={"k": 3})
+retriever = vector_store.as_retriever(search_kwargs={"k": 3})
 
 template = """You are a document assistant. Answer only from the 
 provided context. If the answer is not in the context, 
@@ -36,7 +36,7 @@ def format_docs(docs):
 
 
 chain = (
-    {"context": reterivier | format_docs, "question": RunnablePassthrough()}
+    {"context": retriever | format_docs, "question": RunnablePassthrough()}
     | prompt
     | llm
 )
@@ -48,6 +48,6 @@ print("Answer:", results.content)
 print("---")
 print("Sources:")
 
-source = reterivier.invoke(question)
+source = retriever.invoke(question)
 for doc in source:
     print(doc.metadata["source"])

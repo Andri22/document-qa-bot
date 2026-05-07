@@ -13,10 +13,10 @@ vector_store = Chroma(
     persist_directory=os.getenv("CHROMA_PATH"),
 )
 
-reterivier = vector_store.as_retriever(search_kwargs={"k": 3})
+retriever = vector_store.as_retriever(search_kwargs={"k": 3})
 
 question = "What the title of this document"
-results = reterivier.invoke(question)
+results = retriever.invoke(question)
 
 for doc in results:
     print(doc.page_content)
