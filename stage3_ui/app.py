@@ -21,6 +21,11 @@ load_dotenv()
 st.set_page_config(page_title="Document Q&A Bot", layout="wide")
 
 
+# format docs helper
+def format_docs(docs):
+    return "\n\n".join(doc.page_content for doc in docs)
+
+
 # Cache expensive resources
 @st.cache_resource
 def load_resources():
@@ -35,10 +40,26 @@ def load_resources():
     )
 
     retriever = vector_store.as_retriever(search_kwargs={"k": 3})
-    return retriever, llm
+
+    template = """You are a document assistant. Answer only from the 
+    provided context. If the answer is not in the context, 
+    say you don't know. Always cite your sources.
+
+    Context: {context}
+    Question: {question}"""
+
+    rag_prompt = ChatPromptTemplate.from_template(template)
+
+    chain = (
+        {"context": retriever | format_docs, "question": RunnablePassthrough()}
+        | rag_prompt
+        | llm
+    )
+
+    return retriever, llm, chain
 
 
-retriever, llm = load_resources()
+retriever, llm, chain = load_resources()
 
 st.title("📄 Document Q&A Bot")
 
@@ -64,11 +85,6 @@ def ingest_document(file_path):
     vector_store.add_documents(documents=all_splits, ids=ids)
 
     return len(all_splits)
-
-
-# format docs helper
-def format_docs(docs):
-    return "\n\n".join(doc.page_content for doc in docs)
 
 
 with st.sidebar:
@@ -97,32 +113,16 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-template = """You are a document assistant. Answer only from the 
-provided context. If the answer is not in the context, 
-say you don't know. Always cite your sources.
-
-Context: {context}
-Question: {question}"""
-
-rag_prompt = ChatPromptTemplate.from_template(template)
-
 # chat input
 if prompt := st.chat_input("Ask a question about your document"):
-    # 1. display user message
     with st.chat_message("user"):  # ← correct
         st.markdown(prompt)
-    # 2. add user message to history
     st.session_state.messages.append({"role": "user", "content": prompt})
-    # 3. run RAG chain
-    chain = (
-        {"context": retriever | format_docs, "question": RunnablePassthrough()}
-        | rag_prompt
-        | llm
-    )
-    # 4. display assistant response
+
     response = chain.invoke(prompt)
     answer = response.content
+
     with st.chat_message("assistant"):  # ← correct
         st.markdown(answer)
-    # 5. add assistant response to history
+
     st.session_state.messages.append({"role": "assistant", "content": answer})
