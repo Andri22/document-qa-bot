@@ -9,6 +9,8 @@ services:
       - .env
     volumes:
       - ./vectorstore:/app/vectorstore
+    environment:
+      - PYTHONPATH=/app/stage4_api
 
   streamlit:
     build:
