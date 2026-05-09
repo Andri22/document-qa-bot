@@ -1,1 +1,1 @@
-from app.routes import chat, upload
+# from app.routes import chat, upload
