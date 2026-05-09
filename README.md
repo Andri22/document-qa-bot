@@ -37,6 +37,5 @@ Built with LangChain, FastAPI, and Streamlit.
 - [x] Stage 2 — RAG Core ✅
 - [x] Stage 3 — Streamlit UI ✅
 - [x] Stage 4 — FastAPI Backend ✅
-- [x] Stage 5 — Docker ✅ (local)
-- [ ] Stage 5 — VPS Deployment
+- [x] Stage 5 — Docker + Server Deployment ✅
 - [ ] Stage 6 — CI/CD
