@@ -30,3 +30,13 @@ Built with LangChain, FastAPI, and Streamlit.
 
 5. Run the chatbot
    python stage1_foundations/chat.py
+
+## Stage
+
+- [x] Stage 1 — LangChain Foundations ✅
+- [x] Stage 2 — RAG Core ✅
+- [x] Stage 3 — Streamlit UI ✅
+- [x] Stage 4 — FastAPI Backend ✅
+- [x] Stage 5 — Docker ✅ (local)
+- [ ] Stage 5 — VPS Deployment
+- [ ] Stage 6 — CI/CD
