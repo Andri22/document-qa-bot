@@ -38,4 +38,4 @@ Built with LangChain, FastAPI, and Streamlit.
 - [x] Stage 3 — Streamlit UI ✅
 - [x] Stage 4 — FastAPI Backend ✅
 - [x] Stage 5 — Docker + Server Deployment ✅
-- [ ] Stage 6 — CI/CD
+- [x] Stage 6 — CI/CD
