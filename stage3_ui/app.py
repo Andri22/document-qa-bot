@@ -6,7 +6,7 @@ FASTAPI_URL = "http://fastapi:8000"
 
 # Page config — always first line
 st.set_page_config(page_title="Document Q&A Bot", layout="wide")
-st.title("📄 Document Q&A Bot")
+st.title("📄 Document Q&A Bot - AI Powered")
 
 
 with st.sidebar:
