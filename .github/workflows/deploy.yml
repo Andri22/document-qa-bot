@@ -21,4 +21,5 @@ jobs:
           script: |
             cd ~/document-qa-bot
             git pull origin main
-            docker compose up --build -d
+            docker system prune -f
+            docker compose up -d
