@@ -1,0 +1,16 @@
+# base image — Python 3.11
+FROM python:3.11-slim       
+
+# working directory inside container
+WORKDIR /app
+
+# copy requirements first                 
+COPY requirements.txt .      
+
+# install packages
+RUN pip install -r requirements.txt  
+
+# copy all code
+COPY . .                     
+
+CMD ["uvicorn", "stage4_api.main:app", "--host", "0.0.0.0", "--port", "8000"]

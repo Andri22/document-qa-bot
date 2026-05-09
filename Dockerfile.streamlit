@@ -1,0 +1,16 @@
+# base image — Python 3.11
+FROM python:3.11-slim       
+
+# working directory inside container
+WORKDIR /app
+
+# copy requirements first                 
+COPY requirements.txt .      
+
+# install packages
+RUN pip install -r requirements.txt  
+
+# copy all code
+COPY . .    
+
+CMD ["streamlit", "run", "stage3_ui/app.py", "--server.port", "8501", "--server.address", "0.0.0.0"]
