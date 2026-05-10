@@ -18,6 +18,10 @@ class ChatResponse(BaseModel):
 
 @router.post("/chat", response_model=ChatResponse)
 async def chat(request: ChatRequest, req: Request):
+    """
+    Ask a question about uploaded documents.
+    Returns answer and source citations.
+    """
     try:
         logger.info(f"Received question: {request.question}")
         engine = req.app.state.engine

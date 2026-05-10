@@ -25,7 +25,7 @@ def ingest_document(file_path: str) -> int:
         loader = PyPDFLoader(file_path)
         docs = loader.load()
 
-        logger.info(f"Splitting into chunks")
+        logger.info("Splitting into chunks")
         settings = get_chunk_settings()
         text_splitter = RecursiveCharacterTextSplitter(
             chunk_size=settings["chunk_size"],  # chunk size (characters)

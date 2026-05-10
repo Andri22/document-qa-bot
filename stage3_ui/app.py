@@ -19,11 +19,12 @@ with st.sidebar:
             f"{FASTAPI_URL}/upload",
             files={"file": (uploaded_file.name, uploaded_file, "application/pdf")},
         )
-        result = response.json()
-
-        # show success message
-        st.success(f"Ingested {result['chunks']} chunks successfully")
-        pass
+        if response.status_code == 200:
+            result = response.json()
+            st.success(f"Ingested {result['chunks']} chunks successfully")
+        else:
+            error = response.json()
+            st.error(f"Upload failed: {error['detail']}")
 
 # initialize chat history
 if "messages" not in st.session_state:
@@ -43,8 +44,11 @@ if prompt := st.chat_input("Ask a question about your document"):
     # send question to FastAPI
     response = requests.post(f"{FASTAPI_URL}/chat", json={"question": prompt})
 
-    result = response.json()
-    answer = result["answer"]
+    if response.status_code == 200:
+        result = response.json()
+        answer = result["answer"]
+    else:
+        answer = "Service temporarily unavailable. Please try again."
 
     with st.chat_message("assistant"):  # ← correct
         st.markdown(answer)

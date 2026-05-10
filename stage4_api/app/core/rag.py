@@ -50,17 +50,10 @@ class RAGEngine:
         self.retriever = retriever
 
     def query(self, question: str) -> dict:
-        try:
-            logger.info(f"Processing question: {question}")
-            answer = self.chain.invoke(question).content
-            source_docs = self.retriever.invoke(question)
-            logger.info(f"Retrieved {len(source_docs)} sources")
-            sources = extract_sources(source_docs)
-            logger.info("Query complete")
-            return {"answer": answer, "sources": sources}
-        except Exception as e:
-            logger.error(f"Query failed: {str(e)}")
-            return {
-                "answer": "Service temporarily unavailable. Please try again.",
-                "sources": [],
-            }
+        logger.info(f"Processing question: {question}")
+        answer = self.chain.invoke(question).content
+        source_docs = self.retriever.invoke(question)
+        logger.info(f"Retrieved {len(source_docs)} sources")
+        sources = extract_sources(source_docs)
+        logger.info("Query complete")
+        return {"answer": answer, "sources": sources}
