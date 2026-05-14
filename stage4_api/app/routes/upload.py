@@ -1,4 +1,4 @@
-from fastapi import APIRouter, UploadFile, File, HTTPException
+from fastapi import APIRouter, UploadFile, File, HTTPException, Form
 from app.core.ingest import ingest_document
 import tempfile
 from app.logger import get_logger
@@ -12,7 +12,7 @@ router = APIRouter()
 
 
 @router.post("/upload")
-async def upload_document(file: UploadFile = File(...)):
+async def upload_document(file: UploadFile = File(...), session_id: str = Form(...)):
     """
     Upload a PDF document for ingestion into the knowledge base.
     Returns filename and number of chunks created.
@@ -29,7 +29,7 @@ async def upload_document(file: UploadFile = File(...)):
         tmp.close()
 
         # 2. call ingest_document(tmp_path)
-        count = ingest_document(tmp.name)
+        count = ingest_document(tmp.name, session_id)
 
         os.unlink(tmp.name)
         logger.info(f"Temp file cleaned up: {tmp.name}")

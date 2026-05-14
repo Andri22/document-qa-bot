@@ -1,5 +1,6 @@
 import streamlit as st
 import requests
+from streamlit.runtime.scriptrunner import get_script_run_ctx
 
 # docker service name
 FASTAPI_URL = "http://fastapi:8000"
@@ -7,6 +8,14 @@ FASTAPI_URL = "http://fastapi:8000"
 # Page config — always first line
 st.set_page_config(page_title="Document Q&A Bot", layout="wide")
 st.title("📄 Document Q&A Bot - AI Powered")
+
+
+def get_session_id() -> str:
+    ctx = get_script_run_ctx()
+    return ctx.session_id
+
+
+session_id = get_session_id()
 
 
 with st.sidebar:
@@ -18,6 +27,7 @@ with st.sidebar:
         response = requests.post(
             f"{FASTAPI_URL}/upload",
             files={"file": (uploaded_file.name, uploaded_file, "application/pdf")},
+            data={"session_id": session_id},
         )
         if response.status_code == 200:
             result = response.json()
@@ -42,7 +52,9 @@ if prompt := st.chat_input("Ask a question about your document"):
     st.session_state.messages.append({"role": "user", "content": prompt})
 
     # send question to FastAPI
-    response = requests.post(f"{FASTAPI_URL}/chat", json={"question": prompt})
+    response = requests.post(
+        f"{FASTAPI_URL}/chat", json={"question": prompt, "session_id": session_id}
+    )
 
     if response.status_code == 200:
         result = response.json()

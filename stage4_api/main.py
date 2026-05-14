@@ -1,5 +1,4 @@
 from fastapi import FastAPI
-from app.core.rag import RAGEngine
 from app.routes import chat, upload
 from app.logger import get_logger
 import os
@@ -19,12 +18,12 @@ def health():
 
 
 @app.on_event("startup")
-async def validate_env():
+async def startup():
     if not os.getenv("OPENAI_API_KEY"):
         raise RuntimeError("OPENAI_API_KEY is required")
     if not os.getenv("CHROMA_PATH"):
         raise RuntimeError("CHROMA_PATH is required")
     logger.info("Environment validated successfully")
 
-    app.state.engine = RAGEngine()
-    logger.info("RAG engine loaded successfully")
+    app.state.engines = {}
+    logger.info("Engine cache initialized")

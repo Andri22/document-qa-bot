@@ -11,7 +11,6 @@ from langchain_chroma import Chroma
 from langchain_openai import OpenAIEmbeddings
 from app.core.helper import (
     get_chroma_path,
-    get_collection_name,
     get_chunk_settings,
     get_embedding_model,
 )
@@ -19,7 +18,7 @@ from app.core.helper import (
 logger = get_logger(__name__)
 
 
-def ingest_document(file_path: str) -> int:
+def ingest_document(file_path: str, session_id: str) -> int:
     try:
         logger.info(f"Loading PDF: {file_path}")
         loader = PyPDFLoader(file_path)
@@ -37,7 +36,7 @@ def ingest_document(file_path: str) -> int:
         embeddings = OpenAIEmbeddings(model=get_embedding_model())
 
         vector_store = Chroma(
-            collection_name=get_collection_name(),
+            collection_name=f"session_{session_id}",
             embedding_function=embeddings,
             persist_directory=get_chroma_path(),
         )

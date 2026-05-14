@@ -6,7 +6,6 @@ from langchain_core.runnables import RunnablePassthrough
 from app.logger import get_logger
 from app.core.helper import (
     get_chroma_path,
-    get_collection_name,
     get_embedding_model,
     get_llm_model,
 )
@@ -16,15 +15,15 @@ logger = get_logger(__name__)
 
 
 class RAGEngine:
-    def __init__(self):
-        logger.info("RAG engine initializing")
+    def __init__(self, session_id: str):
+        logger.info(f"RAG engine initializing for session: {session_id}")
         # initialize llm, embeddings, chromadb, retriever, chain
         llm = ChatOpenAI(model=get_llm_model())
 
         embeddings = OpenAIEmbeddings(model=get_embedding_model())
 
         vector_store = Chroma(
-            collection_name=get_collection_name(),
+            collection_name=f"session_{session_id}",
             embedding_function=embeddings,
             persist_directory=get_chroma_path(),
         )
