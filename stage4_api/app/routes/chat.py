@@ -1,8 +1,8 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
-from fastapi import Request
-from app.logger import get_logger
+
 from app.core.rag import RAGEngine
+from app.logger import get_logger
 
 logger = get_logger(__name__)
 router = APIRouter()
@@ -10,7 +10,7 @@ router = APIRouter()
 
 class ChatRequest(BaseModel):
     question: str
-    session_id: str
+    sources: list[str] | None = None
 
 
 class ChatResponse(BaseModel):
@@ -26,10 +26,9 @@ async def chat(request: ChatRequest, req: Request):
     """
     try:
         logger.info(f"Received question: {request.question}")
-        if request.session_id not in req.app.state.engines:
-            req.app.state.engines[request.session_id] = RAGEngine(request.session_id)
-        engine = req.app.state.engines[request.session_id]
-        result = engine.query(request.question)
+        if req.app.state.engine is None:
+            req.app.state.engine = RAGEngine()
+        result = req.app.state.engine.query(request.question, sources=request.sources)
         logger.info("Query complete")
         return ChatResponse(answer=result["answer"], sources=result["sources"])
     except Exception as e:

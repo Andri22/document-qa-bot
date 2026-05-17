@@ -25,5 +25,5 @@ async def startup():
         raise RuntimeError("CHROMA_PATH is required")
     logger.info("Environment validated successfully")
 
-    app.state.engines = {}
-    logger.info("Engine cache initialized")
+    app.state.engine = None
+    logger.info("RAG engine slot initialized")
