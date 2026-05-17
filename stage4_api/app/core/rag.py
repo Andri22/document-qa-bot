@@ -11,6 +11,9 @@ from app.core.helper import (
     get_llm_model,
 )
 from app.utils import format_docs, extract_sources
+from langchain_core.prompts import MessagesPlaceholder
+from langchain_community.chat_message_histories import ChatMessageHistory
+from operator import itemgetter
 
 logger = get_logger(__name__)
 
@@ -29,22 +32,41 @@ class RAGEngine:
             persist_directory=get_chroma_path(),
         )
 
-        template = """You are a document assistant. Answer only from the 
-        provided context. If the answer is not in the context, 
-        say you don't know. Always cite your sources.
-
-        Context: {context}
-        Question: {question}"""
-
-        self.prompt = ChatPromptTemplate.from_template(template)
+        self.prompt = ChatPromptTemplate.from_messages(
+            [
+                (
+                    "system",
+                    """YYou are a document assistant. 
+                    Answer from the provided context when available. 
+                    Use the conversation history for follow-up questions. 
+                    If the answer is in neither, say you don't know. 
+                    Always cite your sources.
+                    
+                    Context: {context}
+                    """,
+                ),
+                MessagesPlaceholder(variable_name="history"),
+                ("human", "{question}"),
+            ]
+        )
 
         logger.info("RAG engine ready")
 
-    def query(self, question: str, sources: list[str] | None = None) -> dict:
+    def query(
+        self,
+        question: str,
+        history: ChatMessageHistory,
+        sources: list[str] | None = None,
+    ) -> dict:
         logger.info(f"Processing question: {question}")
         retriever = self._build_retriever(sources)
         chain = self._build_chain(retriever)
-        answer = chain.invoke(question).content
+        answer = chain.invoke(
+            {
+                "question": question,
+                "history": history.messages,  # Pass messages here
+            }
+        ).content
         source_docs = retriever.invoke(question)
         logger.info(f"Retrieved {len(source_docs)} sources")
         cited_files = extract_sources(source_docs)
@@ -62,7 +84,10 @@ class RAGEngine:
 
     def _build_chain(self, retriever):
         chain = (
-            {"context": retriever | format_docs, "question": RunnablePassthrough()}
+            RunnablePassthrough.assign(
+                # Extract "question" for the retriever, but keep "history" and "question" in the final dict
+                context=itemgetter("question") | retriever | format_docs
+            )
             | self.prompt
             | self.llm
         )
