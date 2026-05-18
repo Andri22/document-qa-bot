@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from app.routes import chat, upload
+from app.routes import chat, upload, documents
 from app.logger import get_logger
 import os
 
@@ -10,6 +10,7 @@ app = FastAPI(title="Document Q&A Bot API")
 # register routes here
 app.include_router(chat.router)
 app.include_router(upload.router)
+app.include_router(documents.router)
 
 
 @app.get("/health")

@@ -15,6 +15,13 @@ if "session_id" not in st.session_state:
 st.set_page_config(page_title="Document Q&A Bot", layout="wide")
 st.title("📄 Document Q&A Bot - AI Powered")
 
+if "document_list" not in st.session_state:
+    response = requests.get(f"{FASTAPI_URL}/documents")
+    if response.status_code == 200:
+        st.session_state.document_list = response.json().get("documents", [])
+    else:
+        st.session_state.document_list = []
+
 with st.sidebar:
     st.header("Upload Document")
     uploaded_files = st.file_uploader(
@@ -55,6 +62,11 @@ with st.sidebar:
                 st.error(f"Upload failed: {error['detail']}")
     options = ["All documents"] + st.session_state.get("document_list", [])
     selected = st.selectbox("Answer from:", options)
+
+    if st.button("Clear Chat"):
+        st.session_state.messages = []
+        st.session_state.session_id = str(uuid.uuid4())  # new session for clean history
+        st.rerun()
 
 if "messages" not in st.session_state:
     st.session_state.messages = []

@@ -10,11 +10,15 @@ logger = get_logger(__name__)
 
 router = APIRouter()
 
+MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
+
+
 class FileUploadResult(BaseModel):
     filename: str
     chunks: int = 0
     status: str  # "ok" | "error"
     detail: str | None = None
+
 
 class UploadResponse(BaseModel):
     results: list[FileUploadResult]
@@ -22,21 +26,35 @@ class UploadResponse(BaseModel):
     succeeded: int
     failed: int
 
+
 async def _process_one_file(file: UploadFile) -> FileUploadResult:
+    content = await file.read()
+    if len(content) > MAX_FILE_SIZE:
+        return FileUploadResult(
+            filename=file.filename or "unknown",
+            status="error",
+            detail="File exceeds 10MB limit",
+        )
     name = file.filename or "unknown"
     logger.info(f"Received file: {name}")
     if not validate_pdf(name):
         logger.warning(f"Invalid file type: {name}")
-        return FileUploadResult(filename=name or "unknown", status="error", detail="Only PDF files are accepted")
-    
+        return FileUploadResult(
+            filename=name or "unknown",
+            status="error",
+            detail="Only PDF files are accepted",
+        )
+
     tmp_path = None
     try:
         with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
-            tmp.write(await file.read())
+            tmp.write(content)
             tmp_path = tmp.name
         count = ingest_document(tmp_path, source_name=file.filename)
         if count == 0:
-            return FileUploadResult(filename=name, status="error", detail="Ingestion failed")
+            return FileUploadResult(
+                filename=name, status="error", detail="Ingestion failed"
+            )
         return FileUploadResult(filename=name, chunks=count, status="ok")
     except Exception as e:
         logger.error(f"Failed to process {name}: {e}")
@@ -44,6 +62,7 @@ async def _process_one_file(file: UploadFile) -> FileUploadResult:
     finally:
         if tmp_path and os.path.exists(tmp_path):
             os.unlink(tmp_path)
+
 
 @router.post("/upload", response_model=UploadResponse)
 async def upload_documents(files: list[UploadFile] = File(...)):
@@ -56,12 +75,13 @@ async def upload_documents(files: list[UploadFile] = File(...)):
     if len(files) > 10:
         raise HTTPException(status_code=400, detail="Too many files")
 
-    results : list[FileUploadResult] = []
+    results: list[FileUploadResult] = []
     for file in files:
         results.append(await _process_one_file(file))
-    
+
     total_chunks = sum(r.chunks for r in results if r.status == "ok")
     succeeded = sum(1 for r in results if r.status == "ok")
     failed = sum(1 for r in results if r.status == "error")
-    return UploadResponse(results=results, total_chunks=total_chunks, succeeded=succeeded, failed=failed)
-
+    return UploadResponse(
+        results=results, total_chunks=total_chunks, succeeded=succeeded, failed=failed
+    )
